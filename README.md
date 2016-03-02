@@ -3,7 +3,7 @@
 An editor for Portrait dialogues. Should produce files compatible with the format used in portrait-one.
 
 
-## Install and Running in Development Mode
+## Installing and Running in Development Mode
 
 First, pull down the dependencies from `npm`:
 
