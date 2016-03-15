@@ -26,24 +26,31 @@ const ClipsColumn = ({ onAddClip,
                        onClipTargetChanged,
                        onClipVideoChanged
                      }) => (
-  <Column title='CLIPS' onClickAdd={onAddClip}>
-    {clips.map(c =>
-      <ClipNode key={c.get('id')}
-                lang={lang}
-                questionIds={questionIds}
-                clipIds={clipIds}
-                incomingQuestions={incomingQuestions.get(c.get('id'))}
-                incomingClips={incomingClips.get(c.get('id'))}
-                cwd={path.dirname(filename)}
-                onRemoveClip={onRemoveClip}
-                onCaptionTextChanged={onCaptionTextChanged}
-                onCaptionTimeChanged={onCaptionTimeChanged}
-                onCaptionAdded={onCaptionAdded}
-                onCaptionRemoved={onCaptionRemoved}
-                onClipTargetChanged={onClipTargetChanged}
-                onClipVideoChanged={onClipVideoChanged}
-                clip={c} />)}
-  </Column>
+  <Column
+    title='CLIPS'
+    onClickAdd={onAddClip}
+    itemGetter={function(i) {
+      const c = clips.get(i);
+      const id = c.get('id');
+      return (<ClipNode
+        key={id}
+        lang={lang}
+        questionIds={questionIds}
+        clipIds={clipIds}
+        incomingQuestions={incomingQuestions.get(id)}
+        incomingClips={incomingClips.get(id)}
+        cwd={path.dirname(filename)}
+        onRemoveClip={onRemoveClip}
+        onCaptionTextChanged={onCaptionTextChanged}
+        onCaptionTimeChanged={onCaptionTimeChanged}
+        onCaptionAdded={onCaptionAdded}
+        onCaptionRemoved={onCaptionRemoved}
+        onClipTargetChanged={onClipTargetChanged}
+        onClipVideoChanged={onClipVideoChanged}
+        clip={c} />);
+    }}
+    itemCount={clips.size}
+  />
 );
 
 //This is a bit gnarly/effectful, maybe worth cleaning up later

@@ -18,19 +18,27 @@ const QuestionsColumn = ({ onAddQuestion,
                            onChoiceAdded,
                            onChoiceRemoved
                          }) => (
-  <Column title='QUESTIONS' onClickAdd={onAddQuestion}>
-    {questions.map(q =>
-      <QuestionNode key={q.get('id')}
-                    lang={lang}
-                    clipIds={clipIds}
-                    incomingClips={incomingClips.get(q.get('id'))}
-                    onRemoveQuestion={onRemoveQuestion}
-                    onChoiceTextChanged={onChoiceTextChanged}
-                    onChoiceTargetChanged={onChoiceTargetChanged}
-                    onChoiceAdded={onChoiceAdded}
-                    onChoiceRemoved={onChoiceRemoved}
-                    question={q} />)}
-  </Column>
+  <Column
+    title='QUESTIONS'
+    onClickAdd={onAddQuestion}
+    itemGetter={function(i) {
+      const q = questions.get(i);
+      const id = q.get('id');
+      return (<QuestionNode
+        key={id}
+        lang={lang}
+        clipIds={clipIds}
+        incomingClips={incomingClips.get(id)}
+        onRemoveQuestion={onRemoveQuestion}
+        onChoiceTextChanged={onChoiceTextChanged}
+        onChoiceTargetChanged={onChoiceTargetChanged}
+        onChoiceAdded={onChoiceAdded}
+        onChoiceRemoved={onChoiceRemoved}
+        question={q} />);
+    }}
+    itemCount={questions.size}
+    sizeGetter={function(i){ return 113 + questions.getIn([i, 'choices']).size * 55; }}
+  />
 );
 
 const clipsSelector = state => state.getIn(['graph', 'clips']);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { VelocityTransitionGroup } from 'velocity-react';
 
+
 //HACK: we need '...props' here for DraggableCore to connect its handlers.
 //(Alternately, we could specify the exact handlers ourselves.)
 const QuestionNode = ({ question,
@@ -16,9 +17,9 @@ const QuestionNode = ({ question,
                         ...props
                       }) => {
   //HACK: hide language-setter special case.
-  if(question.getIn(['choices', 0, 'strings', '*']) !== undefined) {
-    return <div></div>;
-  }
+  // if(question.getIn(['choices', 0, 'strings', '*']) !== undefined) {
+  //   return <div></div>;
+  // }
   const id = question.get('id');
   const choices = question.get('choices');
   const video = question.get('video');
@@ -64,7 +65,7 @@ const QuestionNode = ({ question,
                     className='form-control'
                     placeholder='Clip'
                     onChange={e => onChoiceTargetChanged(id, i, Math.floor(e.target.value))}
-                    value={answer || ''} />
+                    value={answer !== undefined ? answer : ''} />
                   <span className='input-group-addon'>
                     {clipIds.has(answer) ?
                       <a href={'#clip-'+answer}>
@@ -85,12 +86,12 @@ const QuestionNode = ({ question,
               <span className='glyphicon glyphicon-plus'></span>
             </button>
           </div>
-          <div className='col-xs-3 small' style={{lineHeight:'25px'}}>
+          {/*<div className='col-xs-3 small' style={{lineHeight:'25px'}}>
             {video ?
-              <span>Video: <a href='#'> {video.get('src')}</a></span> /* TODO: support adding videos to questions */
+              <span>Video: <a href='#'> {video.get('src')}</a></span> //TODO: support adding videos to questions
               : ''}
-          </div>
-          <div className='col-xs-8 text-right'>
+          </div>*/}
+          <div className='col-xs-11 text-right'>
             <span className='small' style={{marginRight: 5}}>Incoming Clips</span>
             {incomingClips
               ? incomingClips.map(c => <a key={c}

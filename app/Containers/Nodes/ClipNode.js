@@ -53,7 +53,7 @@ const ClipNode = ({ clip,
     targetIndicator = (<span className='text-warning glyphicon glyphicon-question-sign' />);
   }
 
-  const videoPath = path.join(cwd, 'video', videoSrc + '.m4v');
+  const videoPath = path.join(cwd, 'video', videoSrc + '.mov');
   const videoExists = fs.existsSync(videoPath);
 
   return (
@@ -82,14 +82,14 @@ const ClipNode = ({ clip,
                    controls />
             :
             <div className='panel panel-warning'
-                 style={{width:'100%', height:200 }}>
+                 style={{width:'100%', height:200, lineHeight:'200px' }}>
               {`Video file "${videoPath}" not found!`}
             </div>
           }
         </div>
       </div>
       <div className='row' style={{marginBottom:20}}>
-        <div className='col-xs-4 col-xs-offset-4'>
+        <div className='col-xs-8 col-xs-offset-2'>
           <div className='input-group input-group-sm'>
             <input
               type='text'
@@ -100,9 +100,9 @@ const ClipNode = ({ clip,
               value={videoSrc || ''} />
             <span style={{backgroundColor:'#111'}} className='input-group-addon'>
               {videoExists ?
-                <a href={videoPath} target='_blank'>
-                  <span className='glyphicon glyphicon-eye-open' />
-                </a>
+                // <a href={videoPath} target='_blank'>
+                <span className='text-success glyphicon glyphicon-ok' />
+                // </a>
                 :
                 <span className='text-warning glyphicon glyphicon-warning-sign' />
               }

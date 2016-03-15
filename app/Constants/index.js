@@ -1,3 +1,5 @@
+export const appName = 'Portrait Dialog Editor';
+
 export const languages = ['en', 'fr', 'de'/*, '*'*/];
 
 export const viewModes = {

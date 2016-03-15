@@ -8,7 +8,9 @@ export const actionTypes = {
   SET_VIEW_MODE: 'SET_VIEW_MODE',
   SET_LANG: 'SET_LANG',
   SET_ZOOM: 'SET_ZOOM',
+  NEW_FILE: 'NEW_FILE',
   OPEN_FILE: 'OPEN_FILE',
+  SAVE_FILE: 'SAVE_FILE',
   SAVE_FILE_AS: 'SAVE_FILE_AS'
 };
 
@@ -16,19 +18,23 @@ const Toolbar = ({ currentFilename,
                    lang,
                    /*viewMode,*/
                    /*zoom,*/
+                   onClickNew,
                    onClickOpen,
-                   onClickSaveAs,
+                   onClickSave,
                    onClickLang/*, onClickGraph, onClickList, onChangeZoom*/ }) => (
   <nav className='navbar navbar-default' style={{marginBottom:0}}>
     <div className='container-fluid'>
       <div className='navbar-header'>
         <a className='navbar-brand' href='#'>{currentFilename !== '' ? path.basename(currentFilename) : 'New Graph'}</a>
       </div>
-      <button type='button' className='btn btn-default btn-sm navbar-btn' onClick={onClickOpen}>
-        <span className='glyphicon glyphicon-folder-open' />
+      <button type='button' className='btn btn-default btn-sm navbar-btn' onClick={onClickNew}>
+        <span className='fa fa-file-text-o' style={{fontSize:16, verticalAlign:'middle'}} />
       </button>
-      <button type='button' className='btn btn-default btn-sm navbar-btn' style={{marginLeft:10}} onClick={onClickSaveAs}>
-        <span className='glyphicon glyphicon-floppy-disk' />
+      <button type='button' className='btn btn-default btn-sm navbar-btn' style={{marginLeft:10}} onClick={onClickOpen}>
+        <span className='fa fa-folder-open-o' style={{fontSize:16, verticalAlign:'middle'}} />
+      </button>
+      <button type='button' className='btn btn-default btn-sm navbar-btn' style={{marginLeft:10}} onClick={onClickSave}>
+        <span className='fa fa-floppy-o' style={{fontSize:16, verticalAlign:'middle'}}/>
       </button>
       <ul className='nav navbar-nav navbar-right'>
         <li style={{marginRight:'10px'}}> {/*HACK: why do we need to add this margin?*/}
@@ -115,6 +121,11 @@ const mapDispatchToProps = dispatch => {
         viewMode: viewModes.LIST
       });
     },
+    onClickNew: () => {
+      dispatch({
+        type: actionTypes.NEW_FILE
+      });
+    },
     onClickOpen: () => {
       remote.dialog.showOpenDialog({
         title: 'Select a JSON file',
@@ -132,20 +143,9 @@ const mapDispatchToProps = dispatch => {
         }
       });
     },
-    onClickSaveAs: () => {
-      remote.dialog.showSaveDialog({
-        title: 'Select a JSON file',
-        filters: [
-          { name: 'JSON', extensions: ['json'] },
-          { name: 'All Files', extensions: ['*'] }
-        ]
-      }, (filename) => {
-        if(filename) {
-          dispatch({
-            type: actionTypes.SAVE_FILE_AS,
-            filename
-          });
-        }
+    onClickSave: () => {
+      dispatch({
+        type: actionTypes.SAVE_FILE
       });
     }
   };

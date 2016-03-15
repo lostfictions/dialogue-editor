@@ -1,7 +1,7 @@
 import { actionTypes } from '../Components/Toolbar';
 
 import fs from 'fs-extra';
-import Immutable, { Map, Set, OrderedMap } from 'immutable';
+import Immutable, { Map, Set } from 'immutable';
 
 
 export default (state = Map(), action) => {
@@ -12,7 +12,19 @@ export default (state = Map(), action) => {
       return state.set('lang', action.lang);
     case actionTypes.SET_ZOOM:
       return state.set('zoom', action.zoom);
-    case actionTypes.OPEN_FILE:
+    case actionTypes.NEW_FILE: {
+      let s = state;
+      s = s.set('currentFilename', '');
+      s = s.set('graph', Immutable.fromJS({
+        'script': '',
+        'questions': [ ],
+        'clips': [ ]
+      }));
+      s = s.set('questionIds', Set());
+      s = s.set('clipIds', Set());
+      return s;
+    }
+    case actionTypes.OPEN_FILE: {
       if(fs.existsSync(action.filename)) {
         const nextGraph = fs.readJsonSync(action.filename);
         let s = state;
@@ -23,18 +35,37 @@ export default (state = Map(), action) => {
         return s;
       }
       throw new Error(`Filename ${action.filename} doesn't exist!`);
-    case actionTypes.SAVE_FILE_AS:
+    }
+    case actionTypes.SAVE_FILE: {
+      const currentFilename = state.get('currentFilename');
+      if(currentFilename !== undefined && fs.existsSync(currentFilename)) {
+        fs.writeJson(currentFilename, state.get('graph'), (err) => {
+          if(err) {
+            console.log(err);
+          }
+          else {
+            console.log(`Saved file over ${currentFilename}!`);
+          }
+        });
+      }
+      return state;
+    }
+    case actionTypes.SAVE_FILE_AS: {
       let fn = action.filename;
       if(!fn.endsWith('.json')) {
         fn = fn + '.json';
       }
       fs.ensureFileSync(fn);
-      fs.writeJson(fn, state.graph, (err) => {
+      fs.writeJson(fn, state.get('graph'), (err) => {
         if(err) {
           console.log(err);
         }
+        else {
+          console.log(`Saved file as (new filename) ${fn}!`);
+        }
       });
       return state.set('currentFilename', fn);
+    }
     default:
       return state;
   }

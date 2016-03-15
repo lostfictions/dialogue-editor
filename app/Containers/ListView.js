@@ -1,5 +1,6 @@
 import React from 'react';
 import { VelocityTransitionGroup } from 'velocity-react';
+import ReactList from 'react-list';
 
 //TODO: allow setting column width manually
 const columnWidth = 500;
@@ -22,7 +23,7 @@ export const ColumnsContainer = ({ children }) => (
   </div>
 );
 
-export const Column = ({ children, style, title, onClickAdd }) => (
+export const Column = ({itemGetter, sizeGetter, itemCount, style, title, onClickAdd }) => (
   <div style={{
     position:'relative',
     display:'block',
@@ -41,7 +42,6 @@ export const Column = ({ children, style, title, onClickAdd }) => (
       borderLeft:'1px solid #000',
       borderRight:'1px solid #000',
       boxSizig:'border-box',
-      // backgroundColor:'pink',
       display:'flex',
       flexDirection:'column'
     }}>
@@ -64,9 +64,14 @@ export const Column = ({ children, style, title, onClickAdd }) => (
       </header>
       <section style={{flexGrow:1, overflowY:'auto', height:'100%'}}>
         <div id={title + '-top'} />
-        <VelocityTransitionGroup enter={{animation: 'slideDown'}} leave={{animation: 'slideUp'}}>
-          {children}
-        </VelocityTransitionGroup>
+        {/*<VelocityTransitionGroup enter={{animation: 'slideDown'}} leave={{animation: 'slideUp'}}>*/}
+          <ReactList
+            itemRenderer={itemGetter}
+            length={itemCount}
+            type='variable'
+            itemSizeGetter={sizeGetter}
+           />
+        {/*</VelocityTransitionGroup>*/}
       </section>
     </div>
   </div>
