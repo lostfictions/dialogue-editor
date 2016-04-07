@@ -4,9 +4,12 @@ body > div#root {
   position: absolute;
 }
 
-.highlightable-node:target {
+.highlightable-node {
+  transition: background-color 0.4s ease-in-out;
+}
+
+.highlightable-node.focused {
   background-color: #BFBDA3 !important;
-  transition: all 0.3s ease-in-out;
 }
 
 input[type=number]::-webkit-inner-spin-button,

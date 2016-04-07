@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import GraphView from './GraphView';
 // import Nav from './Nav';
 
-import { ColumnsContainer } from '../Containers/ListView';
+import ColumnsContainer from '../Containers/ColumnsContainer';
 
 import QuestionsColumn from './Columns/QuestionsColumn';
 import ClipsColumn from './Columns/ClipsColumn';
@@ -28,10 +28,8 @@ const MainView = ({ viewMode }) => {
   return view;
 };
 
-const mapStateToProps = state => {
-  return {
-    viewMode: state.get('viewMode')
-  };
-};
+const mapStateToProps = state => ({
+  viewMode: state.get('viewMode')
+});
 
 export default connect(mapStateToProps)(MainView);

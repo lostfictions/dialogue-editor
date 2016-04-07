@@ -13,9 +13,6 @@ const devDeps = Object.keys(pkg.devDependencies);
 
 const appName = argv.name || argv.n || pkg.productName;
 const shouldUseAsar = argv.asar || argv.a || false;
-const shouldBuildAll = argv.all || false;
-const shouldBuildDarwin = argv.darwin || false;
-
 
 
 const DEFAULT_OPTS = {
@@ -44,7 +41,7 @@ if (version) {
   // use the same version as the currently-installed electron-prebuilt
   exec('npm list electron-prebuilt', (err, stdout) => {
     if (err) {
-      DEFAULT_OPTS.version = '0.37.2';
+      DEFAULT_OPTS.version = '0.37.4';
     } else {
       DEFAULT_OPTS.version = stdout.split('electron-prebuilt@')[1].replace(/\s/g, '');
     }
@@ -57,10 +54,13 @@ if (version) {
 function startPack() {
   console.log('start pack...');
   webpack(cfg, (err, stats) => {
-    if (err) return console.error(err);
+    if(err) {
+      console.error(err);
+      return;
+    }
     del('release')
     .then(paths => {
-      if(shouldBuildAll) {
+      if(argv.all) {
         // build for all platforms
         const archs = ['ia32', 'x64'];
         const platforms = ['linux', 'win32', 'darwin'];
@@ -71,8 +71,11 @@ function startPack() {
           });
         });
       }
-      else if(shouldBuildDarwin) {
+      else if(argv.darwin) {
         pack('darwin', 'x64', log('darwin', 'x64'));
+      }
+      else if(argv.win) {
+        pack('win32', 'x64', log('win32', 'x64'));
       }
       else {
         // build for current platform only
@@ -115,7 +118,11 @@ function pack(plat, arch, cb) {
 
 function log(plat, arch) {
   return (err, filepath) => {
-    if (err) return console.error(err);
-    console.log(`${plat}-${arch} finished!`);
+    if(err) {
+      console.error(err);
+    }
+    else {
+      console.log(`${plat}-${arch} finished!`);
+    }
   };
 }

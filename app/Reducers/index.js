@@ -1,6 +1,8 @@
 import toolbar from './toolbar';
 import graphView from './graphView';
-import graphAndListView from './graphAndListView';
+import questions from './questions';
+import clips from './clips';
+import shared from './shared';
 
 //From https://github.com/acdlite/reduce-reducers
 function reduceReducers(...reducers) {
@@ -14,7 +16,9 @@ function reduceReducers(...reducers) {
 const rootReducer = reduceReducers(
   toolbar,
   graphView,
-  graphAndListView
+  questions,
+  clips,
+  shared
 );
 
 export default rootReducer;

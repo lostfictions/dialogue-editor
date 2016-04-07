@@ -36,6 +36,9 @@ export default (state = Map(), action) => {
       }
       throw new Error(`Filename ${action.filename} doesn't exist!`);
     }
+    // HACK: we really don't want side effects like the ones below in here.
+    // anything that replays the state (like some of the redux tooling) is
+    // gonna repeat these file operations. uhh.
     case actionTypes.SAVE_FILE: {
       const currentFilename = state.get('currentFilename');
       if(currentFilename !== undefined && fs.existsSync(currentFilename)) {

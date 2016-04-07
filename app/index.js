@@ -10,15 +10,12 @@ import { Provider } from 'react-redux';
 import path from 'path';
 import fs from 'fs-extra';
 import { remote } from 'electron';
-const Menu = remote.Menu;
-const Window = remote.getCurrentWindow();
-const ElectronApp = remote.app;
+import buildMenu from './Electron/buildMenu';
 
 import Immutable, { Set } from 'immutable';
 
 import configureStore from './Store/configureStore';
-import { viewModes, appName } from './Constants';
-import { actionTypes as fileActionTypes } from './Components/Toolbar';
+import { viewModes } from './Constants';
 
 const pathToLastOpen = path.join(remote.app.getPath('userData'), 'lastopen');
 
@@ -51,7 +48,7 @@ const initialState = Immutable.fromJS({
 const store = configureStore(initialState);
 
 /*
-//Test button:
+//Dump state to console:
 const b = document.createElement('button');
 b.innerHTML = 'Dump';
 b.style.position = 'absolute';
@@ -61,6 +58,46 @@ b.className = 'btn btn-warning';
 b.onclick = () => console.log(store.getState().get('graph'));
 document.body.appendChild(b);
 */
+
+/*
+//Perf checking:
+if (process.env.NODE_ENV !== 'production') {
+  const perf = require('react-addons-perf');
+  let startPerf, endPerf;
+
+  const perfButton = document.createElement('button');
+  perfButton.style.position = 'absolute';
+  perfButton.style.right = '10px';
+  perfButton.style.bottom = '10px';
+  document.body.appendChild(perfButton);
+
+  perfButton.innerHTML = 'Start';
+  perfButton.className = 'btn btn-success';
+
+  startPerf = () => {
+    console.log('Starting perf!');
+    perf.start();
+    perfButton.innerHTML = 'Stop';
+    perfButton.className = 'btn btn-danger';
+    perfButton.onclick = endPerf;
+  };
+  endPerf = () => {
+    console.log('Stopping perf!');
+    perf.stop();
+    try {
+      perf.printWasted();
+    }
+    catch(e) {
+      console.log(`Can't print wasted! It exploded for some reason. Error: ${e}`);
+    }
+    perfButton.innerHTML = 'Start';
+    perfButton.className = 'btn btn-success';
+    perfButton.onclick = startPerf;
+  };
+  perfButton.onclick = startPerf;
+}
+*/
+
 
 const rootEl = document.getElementById('root');
 
@@ -132,266 +169,3 @@ function tryReopenLastFile() {
   }
   return { error: `Problem opening last file: ${ lastFilename }` };
 }
-
-
-//TODO: refactor this. it's a mess.
-function buildMenu(dispatch) {
-  let menu;
-  let template;
-
-  if (process.platform === 'darwin') {
-    template = [
-      {
-        label: 'Electron',
-        submenu: [
-          {
-            label: `About ${ appName }`,
-            selector: 'orderFrontStandardAboutPanel:'
-          },
-          {
-            type: 'separator'
-          },
-          {
-            label: `Hide ${ appName }`,
-            accelerator: 'Command+H',
-            selector: 'hide:'
-          },
-          {
-            label: 'Hide Others',
-            accelerator: 'Command+Shift+H',
-            selector: 'hideOtherApplications:'
-          },
-          {
-            label: 'Show All',
-            selector: 'unhideAllApplications:'
-          },
-          {
-            type: 'separator'
-          },
-          {
-            label: 'Quit',
-            accelerator: 'Command+Q',
-            click() {
-              ElectronApp.quit();
-            }
-          }
-        ]
-      },
-      {
-        label: 'File',
-        submenu: [
-          {
-            label: 'Open',
-            accelerator: 'Command+O',
-            click() {
-              remote.dialog.showOpenDialog({
-                title: 'Select a JSON file',
-                filters: [
-                  { name: 'JSON', extensions: ['json'] },
-                  { name: 'All Files', extensions: ['*'] }
-                ],
-                properties: ['openFile']
-              }, (filenames) => {
-                if(filenames) {
-                  dispatch({
-                    type: fileActionTypes.OPEN_FILE,
-                    filename: filenames[0]
-                  });
-                }
-              });
-            }
-          },
-          {
-            label: '&Save',
-            accelerator: 'Command+S',
-            click() {
-              dispatch({
-                type: fileActionTypes.SAVE_FILE
-              });
-            }
-          },
-          {
-            label: 'Save &As',
-            accelerator: 'Shift+Command+S',
-            click() {
-              remote.dialog.showSaveDialog({
-                title: 'Select a JSON file',
-                filters: [
-                  { name: 'JSON', extensions: ['json'] },
-                  { name: 'All Files', extensions: ['*'] }
-                ]
-              }, (filename) => {
-                if(filename) {
-                  dispatch({
-                    type: fileActionTypes.SAVE_FILE_AS,
-                    filename
-                  });
-                }
-              });
-            }
-          },
-          {
-            label: '&Close',
-            accelerator: 'Ctrl+W',
-            click() {
-              Window.close();
-            }
-          }
-        ]
-      },
-      {
-        label: 'View',
-        submenu: (process.env.NODE_ENV === 'development')
-        ? [
-          {
-            label: 'Reload',
-            accelerator: 'Command+R',
-            click() {
-              Window.reload();
-            }
-          },
-          {
-            label: 'Toggle Full Screen',
-            accelerator: 'Ctrl+Command+F',
-            click() {
-              Window.setFullScreen(!Window.isFullScreen());
-            }
-          },
-          {
-            label: 'Toggle Developer Tools',
-            accelerator: 'Alt+Command+I',
-            click() {
-              Window.toggleDevTools();
-            }
-          }
-        ]
-        : [
-          {
-            label: 'Toggle Full Screen',
-            accelerator: 'Ctrl+Command+F',
-            click() {
-              Window.setFullScreen(!Window.isFullScreen());
-            }
-          }
-        ]
-      },
-      {
-        label: 'Window',
-        submenu: [
-          {
-            label: 'Minimize',
-            accelerator: 'Command+M',
-            selector: 'performMiniaturize:'
-          },
-          {
-            label: 'Close',
-            accelerator: 'Command+W',
-            selector: 'performClose:'
-          },
-          {
-            type: 'separator'
-          },
-          {
-            label: 'Bring All to Front',
-            selector: 'arrangeInFront:'
-          }
-        ]
-      }
-    ];
-  }
-  else {
-    template = [{
-      label: '&File',
-      submenu: [
-        {
-          label: '&Open',
-          accelerator: 'Ctrl+O',
-          click() {
-            remote.dialog.showOpenDialog({
-              title: 'Select a JSON file',
-              filters: [
-                { name: 'JSON', extensions: ['json'] },
-                { name: 'All Files', extensions: ['*'] }
-              ],
-              properties: ['openFile']
-            }, (filenames) => {
-              if(filenames) {
-                dispatch({
-                  type: fileActionTypes.OPEN_FILE,
-                  filename: filenames[0]
-                });
-              }
-            });
-          }
-        },
-        {
-          label: '&Save',
-          accelerator: 'Ctrl+S',
-          click() {
-            dispatch({
-              type: fileActionTypes.SAVE_FILE
-            });
-          }
-        },
-        {
-          label: 'Save &As',
-          accelerator: 'Shift+Ctrl+S',
-          click() {
-            remote.dialog.showSaveDialog({
-              title: 'Select a JSON file',
-              filters: [
-                { name: 'JSON', extensions: ['json'] },
-                { name: 'All Files', extensions: ['*'] }
-              ]
-            }, (filename) => {
-              if(filename) {
-                dispatch({
-                  type: fileActionTypes.SAVE_FILE_AS,
-                  filename
-                });
-              }
-            });
-          }
-        },
-        {
-          label: '&Close',
-          accelerator: 'Ctrl+W',
-          click() {
-            Window.close();
-          }
-        }
-      ]
-    }, {
-      label: '&View',
-      submenu: (process.env.NODE_ENV === 'development') ? [{
-        label: '&Reload',
-        accelerator: 'Ctrl+R',
-        click() {
-          Window.reload();
-        }
-      }, {
-        label: 'Toggle &Full Screen',
-        accelerator: 'F11',
-        click() {
-          Window.setFullScreen(!Window.isFullScreen());
-        }
-      }, {
-        label: 'Toggle &Developer Tools',
-        accelerator: 'Alt+Ctrl+I',
-        click() {
-          Window.toggleDevTools();
-        }
-      }] : [{
-        label: 'Toggle &Full Screen',
-        accelerator: 'F11',
-        click() {
-          Window.setFullScreen(!Window.isFullScreen());
-        }
-      }]
-    }];
-  }
-  menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
-}
-
-

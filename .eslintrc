@@ -30,6 +30,12 @@
     "babel/object-shorthand": 1,
     "babel/arrow-parens": 0,
     "babel/no-await-in-loop": 1,
+    "react/jsx-boolean-value": [2, "never"],
+    "react/jsx-indent": [0, 2],
+    "react/jsx-no-bind": 2,
+    "react/jsx-no-duplicate-props": 2,
+    "react/jsx-no-undef": 2,
+    "react/jsx-space-before-closing": [2, "always"],
     "react/jsx-uses-react": 2,
     "react/jsx-uses-vars": 2,
     "react/react-in-jsx-scope": 2

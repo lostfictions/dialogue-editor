@@ -51,7 +51,7 @@ export default class Nav extends Component {
         right: '0px',
         bottom: '0px'
       }}>
-        ({this.state.x}, {this.state.y})<br/>
+        ({this.state.x}, {this.state.y})<br />
         ({this.state.width}, {this.state.height})
       </div>
     );

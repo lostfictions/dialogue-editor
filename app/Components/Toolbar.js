@@ -34,7 +34,7 @@ const Toolbar = ({ currentFilename,
         <span className='fa fa-folder-open-o' style={{fontSize:16, verticalAlign:'middle'}} />
       </button>
       <button type='button' className='btn btn-default btn-sm navbar-btn' style={{marginLeft:10}} onClick={onClickSave}>
-        <span className='fa fa-floppy-o' style={{fontSize:16, verticalAlign:'middle'}}/>
+        <span className='fa fa-floppy-o' style={{fontSize:16, verticalAlign:'middle'}} />
       </button>
       <ul className='nav navbar-nav navbar-right'>
         <li style={{marginRight:'10px'}}> {/*HACK: why do we need to add this margin?*/}
@@ -86,69 +86,65 @@ const Toolbar = ({ currentFilename,
   </nav>
 );
 
-const mapStateToProps = state => {
-  return {
-    currentFilename: state.get('currentFilename'),
-    viewMode: state.get('viewMode'),
-    lang: state.get('lang'),
-    zoom: state.get('zoom')
-  };
-};
+const mapStateToProps = state => ({
+  currentFilename: state.get('currentFilename'),
+  viewMode: state.get('viewMode'),
+  lang: state.get('lang'),
+  zoom: state.get('zoom')
+});
 
-const mapDispatchToProps = dispatch => {
-  return {
-    onChangeZoom: zoom => {
-      dispatch({
-        type: actionTypes.SET_ZOOM,
-        zoom
-      });
-    },
-    onClickLang: lang => {
-      dispatch({
-        type: actionTypes.SET_LANG,
-        lang
-      });
-    },
-    onClickGraph: () => {
-      dispatch({
-        type: actionTypes.SET_VIEW_MODE,
-        viewMode: viewModes.GRAPH
-      });
-    },
-    onClickList: () => {
-      dispatch({
-        type: actionTypes.SET_VIEW_MODE,
-        viewMode: viewModes.LIST
-      });
-    },
-    onClickNew: () => {
-      dispatch({
-        type: actionTypes.NEW_FILE
-      });
-    },
-    onClickOpen: () => {
-      remote.dialog.showOpenDialog({
-        title: 'Select a JSON file',
-        filters: [
-          { name: 'JSON', extensions: ['json'] },
-          { name: 'All Files', extensions: ['*'] }
-        ],
-        properties: ['openFile']
-      }, (filenames) => {
-        if(filenames) {
-          dispatch({
-            type: actionTypes.OPEN_FILE,
-            filename: filenames[0]
-          });
-        }
-      });
-    },
-    onClickSave: () => {
-      dispatch({
-        type: actionTypes.SAVE_FILE
-      });
-    }
-  };
-};
+const mapDispatchToProps = dispatch => ({
+  onChangeZoom: zoom => {
+    dispatch({
+      type: actionTypes.SET_ZOOM,
+      zoom
+    });
+  },
+  onClickLang: lang => {
+    dispatch({
+      type: actionTypes.SET_LANG,
+      lang
+    });
+  },
+  onClickGraph: () => {
+    dispatch({
+      type: actionTypes.SET_VIEW_MODE,
+      viewMode: viewModes.GRAPH
+    });
+  },
+  onClickList: () => {
+    dispatch({
+      type: actionTypes.SET_VIEW_MODE,
+      viewMode: viewModes.LIST
+    });
+  },
+  onClickNew: () => {
+    dispatch({
+      type: actionTypes.NEW_FILE
+    });
+  },
+  onClickOpen: () => {
+    remote.dialog.showOpenDialog({
+      title: 'Select a JSON file',
+      filters: [
+        { name: 'JSON', extensions: ['json'] },
+        { name: 'All Files', extensions: ['*'] }
+      ],
+      properties: ['openFile']
+    }, (filenames) => {
+      if(filenames) {
+        dispatch({
+          type: actionTypes.OPEN_FILE,
+          filename: filenames[0]
+        });
+      }
+    });
+  },
+  onClickSave: () => {
+    dispatch({
+      type: actionTypes.SAVE_FILE
+    });
+  }
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(Toolbar);

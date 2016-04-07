@@ -4,8 +4,8 @@ import ClipNode from '../Containers/Nodes/ClipNode';
 import QuestionNode from '../Containers/Nodes/QuestionNode';
 import DraggableNodeWrapper from '../Containers/Nodes/DraggableNodeWrapper';
 
-import { nodeTypes, graphAndListViewActionTypes as commonActionTypes } from '../Constants';
-
+import { nodeTypes } from '../Constants';
+import { actionTypes as questionActionTypes } from './Columns/QuestionsColumn';
 
 export const actionTypes = {
   DRAG_NODE: 'DRAG_NODE'
@@ -20,48 +20,44 @@ const GraphView = ({ questions, clips, lang, zoom, onDrag, onChoiceTextChanged }
       <DraggableNodeWrapper key={q.id}
                      x={q.x}
                      y={q.y}
-                     onDrag={(e, ui) => onDrag(nodeTypes.QUESTION_NODE, q.id, { x: ui.position.deltaX, y: ui.position.deltaY })}>
+                     onDrag={function(e, ui) { onDrag(nodeTypes.QUESTION_NODE, q.id, { x: ui.position.deltaX, y: ui.position.deltaY }); }}>
         <QuestionNode lang={lang} onChoiceTextChanged={onChoiceTextChanged} {...q} />
       </DraggableNodeWrapper>)}
     {clips.map(c =>
       <DraggableNodeWrapper key={c.id}
                      x={c.x}
                      y={c.y}
-                     onDrag={(e, ui) => onDrag(nodeTypes.CLIP_NODE, c.id, { x: ui.position.deltaX, y: ui.position.deltaY })}>
+                     onDrag={function(e, ui) { onDrag(nodeTypes.CLIP_NODE, c.id, { x: ui.position.deltaX, y: ui.position.deltaY }); }}>
         <ClipNode lang={lang} {...c} />
       </DraggableNodeWrapper>)}
   </div>
 );
 
-const mapStateToProps = state => {
-  return {
-    questions: state.getIn(['graph', 'questions']),
-    clips: state.getIn(['graph', 'clips']),
-    lang: state.get('lang'),
-    zoom: state.get('zoom')
-  };
-};
+const mapStateToProps = state => ({
+  questions: state.getIn(['graph', 'questions']),
+  clips: state.getIn(['graph', 'clips']),
+  lang: state.get('lang'),
+  zoom: state.get('zoom')
+});
 
-const mapDispatchToProps = dispatch => {
-  return {
-    onDrag: (nodeType, id, delta) => {
-      dispatch({
-        type: actionTypes.DRAG_NODE,
-        nodeType,
-        id,
-        delta
-      });
-    },
-    onChoiceTextChanged: (id, lang, index, text) => {
-      dispatch({
-        type: commonActionTypes.CHOICE_TEXT_CHANGED,
-        id,
-        lang,
-        index,
-        text
-      });
-    }
-  };
-};
+const mapDispatchToProps = dispatch => ({
+  onDrag: (nodeType, id, delta) => {
+    dispatch({
+      type: actionTypes.DRAG_NODE,
+      nodeType,
+      id,
+      delta
+    });
+  },
+  onChoiceTextChanged: (id, lang, index, text) => {
+    dispatch({
+      type: questionActionTypes.CHOICE_TEXT_CHANGED,
+      id,
+      lang,
+      index,
+      text
+    });
+  }
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(GraphView);

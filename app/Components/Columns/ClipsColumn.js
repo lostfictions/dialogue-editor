@@ -3,14 +3,25 @@ import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
 import { Map, Set } from 'immutable';
 
-import { Column } from '../../Containers/ListView';
+import Column from '../../Containers/Column';
 import ClipNode from '../../Containers/Nodes/ClipNode';
 
-import { graphAndListViewActionTypes as actionTypes } from '../../Constants';
+import { sharedActionTypes } from '../../Constants';
 
 import path from 'path';
 
-const ClipsColumn = ({ onAddClip,
+export const actionTypes = {
+  CAPTION_TEXT_CHANGED: 'CAPTION_TEXT_CHANGED',
+  CAPTION_TIME_CHANGED: 'CAPTION_TIME_CHANGED',
+  CAPTION_ADDED: 'CAPTION_ADDED',
+  CAPTION_REMOVED: 'CAPTION_REMOVED',
+  CLIP_TARGET_CHANGED: 'CLIP_TARGET_CHANGED',
+  CLIP_VIDEO_CHANGED: 'CLIP_VIDEO_CHANGED',
+  ADD_CLIP: 'ADD_CLIP',
+  REMOVE_CLIP: 'REMOVE_CLIP'
+};
+
+const ClipsColumn = ({
                        clips,
                        lang,
                        filename,
@@ -18,16 +29,25 @@ const ClipsColumn = ({ onAddClip,
                        clipIds,
                        incomingQuestions,
                        incomingClips,
+                       searchText,
+                       focusedItem,
+                       onAddClip,
                        onRemoveClip,
                        onCaptionTextChanged,
                        onCaptionTimeChanged,
                        onCaptionAdded,
                        onCaptionRemoved,
                        onClipTargetChanged,
-                       onClipVideoChanged
-                     }) => (
+                       onClipVideoChanged,
+                       onSearch,
+                       onFocus
+                     }) => {
+  const getIndexFromId = function(id) {
+    return clips.findIndex(function(item){ return item.get('id') === id;});
+  };
+  return (
   <Column
-    title='CLIPS'
+    title='clips'
     onClickAdd={onAddClip}
     itemGetter={function(i) {
       const c = clips.get(i);
@@ -39,6 +59,7 @@ const ClipsColumn = ({ onAddClip,
         clipIds={clipIds}
         incomingQuestions={incomingQuestions.get(id)}
         incomingClips={incomingClips.get(id)}
+        focused={id===focusedItem}
         cwd={path.dirname(filename)}
         onRemoveClip={onRemoveClip}
         onCaptionTextChanged={onCaptionTextChanged}
@@ -47,16 +68,33 @@ const ClipsColumn = ({ onAddClip,
         onCaptionRemoved={onCaptionRemoved}
         onClipTargetChanged={onClipTargetChanged}
         onClipVideoChanged={onClipVideoChanged}
+        onFocus={onFocus}
         clip={c} />);
     }}
     itemCount={clips.size}
+    getIndexFromId={getIndexFromId}
+    sizeGetter={function(i) {
+      const captions = clips.getIn([i, 'strings', lang]);
+      const captionsSize = captions ? captions.size * 55 : 0;
+      return (
+        424 + /* base height*/
+        2 + /* border */
+        10 +  /* margin-bottom */
+        captionsSize /* each caption row */
+      );
+    }}
+    onSearch={onSearch}
+    searchText={searchText}
+    focusedItem={focusedItem}
+    onFocus={onFocus}
   />
 );
+};
 
 //This is a bit gnarly/effectful, maybe worth cleaning up later
-const questionsSelector = state => state.getIn(['graph', 'questions']);
+const getQuestions = state => state.getIn(['graph', 'questions']);
 const incomingQuestionsSelector = createSelector(
-  questionsSelector,
+  getQuestions,
   questions => {
     let clipsToIncomingQuestions = Map();
 
@@ -74,90 +112,120 @@ const incomingQuestionsSelector = createSelector(
   }
 );
 
-const clipsSelector = state => state.getIn(['graph', 'clips']);
+const getClips = state => state.getIn(['graph', 'clips']);
 const incomingClipsSelector = createSelector(
-  clipsSelector,
-  clips => {
-    return clips
-      //We only want clips that point to other clips
-      .filter(clip => clip.get('next').startsWith('clip:'))
-      //Group clips by the clip they point to
-      .groupBy(c => parseInt(c.get('next').substr('clip:'.length), 10))
-      //The only property we need from each group of clips is the clip id
-      .map(v => v.map(c => c.get('id')));
+  getClips,
+  clips => clips
+    //We only want clips that point to other clips
+    .filter(clip => clip.get('next').startsWith('clip:'))
+    //Group clips by the clip they point to
+    .groupBy(c => parseInt(c.get('next').substr('clip:'.length), 10))
+    //The only property we need from each group of clips is the clip id
+    .map(v => v.map(c => c.get('id')))
+);
+
+const getFilterQuery = state => state.getIn(['filters', 'clips']);
+const clipsSelector = createSelector(
+  [getClips, getFilterQuery],
+  (clips, filterQuery) => {
+    if(!filterQuery) {
+      return clips;
+    }
+
+    const query = filterQuery.toLowerCase();
+    return clips.filter(
+      c => c
+        .get('strings')
+        .map(captionList => captionList.map(timestamped => timestamped.get(1)))
+        .valueSeq()
+        .flatten()
+        .some(caption => caption.toLowerCase().indexOf(query) > -1)
+    );
   }
 );
 
-const mapStateToProps = state => {
-  return {
-    clips: state.getIn(['graph', 'clips']),
-    questionIds: state.get('questionIds'),
-    clipIds: state.get('clipIds'),
-    lang: state.get('lang'),
-    filename: state.get('currentFilename'),
-    incomingQuestions: incomingQuestionsSelector(state),
-    incomingClips: incomingClipsSelector(state)
-  };
-};
+const mapStateToProps = state => ({
+  clips: clipsSelector(state),
+  questionIds: state.get('questionIds'),
+  clipIds: state.get('clipIds'),
+  lang: state.get('lang'),
+  filename: state.get('currentFilename'),
+  incomingQuestions: incomingQuestionsSelector(state),
+  incomingClips: incomingClipsSelector(state),
+  searchText: state.getIn(['filters', 'clips']),
+  focusedItem: state.getIn(['focused', 'clips'])
+});
 
-const mapDispatchToProps = dispatch => {
-  return {
-    onCaptionTextChanged: (id, lang, index, text) => {
-      dispatch({
-        type: actionTypes.CAPTION_TEXT_CHANGED,
-        id,
-        lang,
-        index,
-        text
-      });
-    },
-    onCaptionTimeChanged: (id, index, time) => {
-      dispatch({
-        type: actionTypes.CAPTION_TIME_CHANGED,
-        id,
-        index,
-        time
-      });
-    },
-    onCaptionAdded: (id) => {
-      dispatch({
-        type: actionTypes.CAPTION_ADDED,
-        id
-      });
-    },
-    onCaptionRemoved: (id, index) => {
-      dispatch({
-        type: actionTypes.CAPTION_REMOVED,
-        id,
-        index
-      });
-    },
-    onClipTargetChanged: (id, target) => {
-      dispatch({
-        type: actionTypes.CLIP_TARGET_CHANGED,
-        id,
-        target
-      });
-    },
-    onClipVideoChanged: (id, src) => {
-      dispatch({
-        type: actionTypes.CLIP_VIDEO_CHANGED,
-        id,
-        src
-      });
-    },
-    onAddClip: () => {
-      dispatch({
-        type: actionTypes.ADD_CLIP
-      });
-    },
-    onRemoveClip: (id) => {
-      dispatch({
-        type: actionTypes.REMOVE_CLIP,
-        id
-      });
-    }
-  };
-};
+const mapDispatchToProps = dispatch => ({
+  onCaptionTextChanged: (id, lang, index, text) => {
+    dispatch({
+      type: actionTypes.CAPTION_TEXT_CHANGED,
+      id,
+      lang,
+      index,
+      text
+    });
+  },
+  onCaptionTimeChanged: (id, index, time) => {
+    dispatch({
+      type: actionTypes.CAPTION_TIME_CHANGED,
+      id,
+      index,
+      time
+    });
+  },
+  onCaptionAdded: (id) => {
+    dispatch({
+      type: actionTypes.CAPTION_ADDED,
+      id
+    });
+  },
+  onCaptionRemoved: (id, index) => {
+    dispatch({
+      type: actionTypes.CAPTION_REMOVED,
+      id,
+      index
+    });
+  },
+  onClipTargetChanged: (id, target) => {
+    dispatch({
+      type: actionTypes.CLIP_TARGET_CHANGED,
+      id,
+      target
+    });
+  },
+  onClipVideoChanged: (id, src) => {
+    dispatch({
+      type: actionTypes.CLIP_VIDEO_CHANGED,
+      id,
+      src
+    });
+  },
+  onAddClip: () => {
+    dispatch({
+      type: actionTypes.ADD_CLIP
+    });
+  },
+  onRemoveClip: (id) => {
+    dispatch({
+      type: actionTypes.REMOVE_CLIP,
+      id
+    });
+  },
+  onSearch: (query) => {
+    dispatch({
+      type: sharedActionTypes.FILTER_COLUMN,
+      query,
+      column: 'clips'
+    });
+  },
+  onFocus: (id, column) => {
+    dispatch({
+      type: sharedActionTypes.FOCUS_ITEM,
+      id,
+      column
+    });
+  }
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(ClipsColumn);
