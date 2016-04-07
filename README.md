@@ -2,6 +2,7 @@
 
 An editor for Portrait dialogues. Should produce files compatible with the format used in portrait-one.
 
+![A screenshot of the editor.](screenshot.png)
 
 ## Installing and Running in Development Mode
 
