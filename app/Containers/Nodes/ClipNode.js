@@ -71,7 +71,7 @@ const ClipNode = ({ clip,
 
             :
             <div className='panel panel-warning'
-                 style={{width:'100%', height:200, lineHeight:'200px' }}>
+                 style={{width:'100%', height:200, paddingTop:70, overflow:'hidden' }}>
               {`Video file "${videoPath}" not found!`}
             </div>
           }

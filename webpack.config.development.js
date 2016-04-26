@@ -4,6 +4,7 @@
 const webpack = require('webpack');
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer');
 const baseConfig = require('./webpack.config.base');
+const nodeExternals = require('webpack-node-externals');
 
 
 const config = Object.create(baseConfig);
@@ -44,6 +45,10 @@ config.plugins.push(
     }
   })
 );
+
+config.externals = [nodeExternals({
+  whitelist: ['webpack-hot-middleware/client?reload=true&path=http://localhost:3000/__webpack_hmr']
+})];
 
 config.target = webpackTargetElectronRenderer(config);
 
